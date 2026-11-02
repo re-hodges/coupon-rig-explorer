@@ -1,0 +1,85 @@
+# Bench rig geometry and feeding protocol.
+#
+# ONE PLACE TO EDIT. Everything downstream (make_trajectories_v2.py, run_demo.py --rig)
+# reads these values; nothing hard-codes them. When Anthony measures the coupons and the
+# vessels, change the two numbers under `geometry`, set `provenance: measured`, and re-run
+#   python make_trajectories_v2.py --protocol halfrep
+# then re-bake the Blender scene. No other file needs touching.
+#
+# WHY THIS MATTERS MORE THAN IT LOOKS
+# The ratio of coupon area to liquid volume (a_v) sets how fast the vessel strips its own
+# feed. It is not a cosmetic parameter: at the two values the project's own documents
+# imply, the required feeding protocol is qualitatively different (see `protocol` below).
+# Until these are measured, the feeding protocol cannot be fixed.
+
+geometry:
+  # WORKING PLACEHOLDERS, set 1 November 2026: 25 cm2 of coupon and 1 L of liquid per
+  # vessel. These supersede the two earlier figures, which disagreed fourfold and were
+  # both unmeasured:
+  #   asset.yaml          0.01125 m2 / 1.5 L   -> a_v =  7.5   ("placeholder: true")
+  #   site_geometry.csv   0.0162 m2 / 0.534 L  -> a_v = 30.3   ("reconstructed")
+  #
+  # READ THIS BEFORE CHANGING THE AREA. `coupon_area_m2` is the TOTAL WETTED area per
+  # vessel -- every coupon, every submerged face. 25 cm2 is taken here as that total.
+  # If 25 cm2 turns out to be one FACE of one coupon, and the rig holds three coupons
+  # wetted on both sides, the total is 150 cm2 and a_v becomes 15.0, which changes the
+  # feeding protocol below. The breakdown is spelled out so the assumption is visible:
+  coupon_area_m2: 0.0025        # TOTAL wetted area per vessel = 25 cm2
+  working_volume_l: 1.0         # liquid volume per vessel
+  breakdown:                    # documentation only; coupon_area_m2 above is what is used
+    area_per_face_cm2: 25.0
+    coupons_per_vessel: 1
+    wetted_faces_per_coupon: 1
+  # The coupon stands FULLY SUBMERGED, so there is no air phase and no alternating
+  # exposure: f_wet = 1. coupon_area_m2 above is already the wetted area, so applying a
+  # wetted fraction on top of it would discount submergence twice -- which it did until
+  # 2 November 2026. f_wet keeps its submergence meaning only for the carrier screening,
+  # where a_geo is total surface and part of it may sit above the liquor.
+  f_wet: 1.0
+  provenance: placeholder       # -> "measured" once Anthony reports
+  measured_by: null
+  measured_on: null
+  note: >
+    a_v = 2.5 m2/m3. If the measurement lands near 15 (three coupons, both faces) or 30
+    (the site_geometry reconstruction), re-run the frequency comparison before trusting
+    the protocol below -- at 30.3 no manual schedule works at all and the rig needs a pump.
+
+protocol:
+  # Half the volume drawn off and made up with fresh medium, TWICE a day, from day 3.
+  # 1 L of medium per vessel per day; 36 L/day across the rig.
+  #
+  # Each element was chosen against a simulated alternative at a_v = 2.5, over days 3-10,
+  # fabric at the Sturgis photoperiod:
+  #
+  #   regime                  mean NH3-N   min    % of time >2 mg/L   biomass d10   medium
+  #   no feeding (as built)        2.05    0.00          26 %            4.68 g/m2   0 L/d
+  #   half, once a day            10.86    1.51          99 %           11.30        0.5
+  #   half, TWICE a day           15.63   11.83         100 %           12.90        1.0
+  #   whole volume, once a day    17.26   11.99         100 %           12.88        1.0
+  #   half, four times a day      17.93   15.17         100 %           13.59        2.0
+  #
+  #   frequency    once a day still dips to 1.51 mg/L; twice a day holds 11.8 mg/L and is
+  #                the cheapest regime that never goes short. Four times a day costs twice
+  #                the medium for 5% more biomass.
+  #   fraction     half-twice and whole-once both use 1 L/day and both hold 100%, but
+  #                replacing the WHOLE volume discards suspended cells that have not
+  #                attached yet, which flatters the fast coloniser -- fabric/HDPE biomass
+  #                at day 28 comes out 1.21x with full washout against 1.07x with cells
+  #                retained. That difference is protocol, not material, and Hypothesis 2
+  #                is precisely the material comparison. Half-twice is the same cost with
+  #                less washout per event.
+  #   start day    beginning at day 3 leaves the colonisation window undisturbed and costs
+  #                nothing at the endpoint.
+  #
+  # CONDITIONAL ON THE GEOMETRY ABOVE, and sensitive to it. At a_v = 7.5 this same setting
+  # leaves ammonia at zero 20% of the day and four feeds are needed; at a_v = 30.3 no
+  # manual schedule works at all and the rig needs a pump. Re-run the comparison if the
+  # measured area or volume differs from the placeholders above.
+  replace_fraction: 0.5
+  feeds_per_day: 2
+  first_feed_day: 3
+  feed:                         # RBC effluent, after Antonie (2018), via EXPERIMENT SETUP
+    nh3n_mg_l: 20.0
+    no3n_mg_l: 0.0
+    tp_mg_l: 4.0
+    bod5_mg_l: 20.0

@@ -1,0 +1,87 @@
+parameters:
+  I0: 110.0
+  k_abs: 0.21
+  K_I: 50.0
+  mu_max_p: 4.527361292824027
+  b_p: 0.17
+  K_N_p: 0.017
+  K_P_p: 0.02
+  theta_p: 1.07
+  fN_p: 0.048
+  fP_p: 0.0099
+  rN_ref: 4.2
+  K_N_n: 1.0
+  theta_n: 1.025
+  Y_n: 0.17
+  Xn_ref: 0.71
+  b_n: 0.15
+  mu_max_h: 3.2
+  K_S_h: 4.0
+  Y_h: 0.44
+  b_h: 0.4
+  theta_h: 1.07
+  K_pl: 0.5          # g DW m-3, half-saturation of attachment on the suspended pool
+  b_pl: 0.10         # /d, decay of suspended cells (they are unlit and unattached)
+  seed_frac: 0.02    # share of the inoculum already on the carrier at t = 0
+  lag_d: 0.0         # d, Baranyi-Roberts lag before growth reaches full rate.
+                      # ZERO BY DEFAULT and deliberately so: no lag has been measured on
+                      # these coupons, and switching it on would assert a third unmeasured
+                      # parameter. It exists so the day 3/7/10 harvests can rule a lag in
+                      # or out. Delays growth only, not attachment.
+  k_att: 1.0          # g DW m-2 d-1, areal attachment flux on bare HDPE (attach = 1).
+                      # Unmeasured. Anchored so that HDPE gains in one day the areal
+                      # biomass that v2 previously imposed as its initial condition.
+                      # Material factor multiplies this; sampled in the ensemble.
+  k_det: 0.05
+  f_wet: 0.76
+  comp_on: 1.0
+  K_comp: 5.0
+  Xp0: 0.5
+  Xn0: 0.2
+  Xh0: 0.3
+  capacity_headroom: 1.25
+  rho_film_wet: 1.426
+  moisture: 0.85
+  S_O_bulk: 8.0
+  D_O2_eff: 0.000108
+  K_O_A: 0.25
+  K_O_H: 0.05
+  Y_O2_p: 1.3
+  X_cap: 60.0
+  D_S_eff: 4.32e-05
+  delta_S_floor: 5.0e-05
+  gra_final_factor: 0.56
+  gra_onset_d: 14.0
+  gra_tau_d: 10.0
+provenance:
+  mu_max_h: 'RULED 31 Oct 2026: plant-level model, 3.2 /d at 20 degC (was 5.50, Wolf
+    2007)'
+  f_wet: 'SUBMERGENCE of the carrier. 0.76 applies to the CARRIER SCREENING, where a_geo
+    is total surface and part of it may sit above the liquor. It does NOT apply to the
+    bench rig: the coupon is fully submerged and rig.yaml''s coupon_area_m2 is already
+    the wetted area, so rig scripts take f_wet = 1.0 from rig.yaml (2 Nov 2026). Applying
+    0.76 there discounted wetted area twice.'
+  S_O_bulk: best guess, sampled 6.5-9.1; upper bound is the plant twin osat 9.09 mg/L
+    at 20 degC
+  D_O2_eff: 2.5e-5 cm2/s in water x 0.5 biofilm reduction (plant twin RBC workbook)
+    = 1.08e-4 m2/d
+  Y_O2_p: 'stoichiometric estimate: biomass CH1.8O0.5N0.2 (24.63 g/C-mol), photosynthetic
+    quotient 1.0'
+  K_O_A: plant twin koaut 0.25 gO2/m3
+  K_O_H: plant twin kohet 0.05 gO2/m3
+  rho_film_wet: Primodal TM 1.426 g/cm3
+  moisture: 0.85, literature review
+  X_cap: '60 g DW m-2, declared: midpoint of the 32-88 g DW m-2 implied by the measured
+    RBC film thicknesses 0.151-0.412 mm at 1.426 g/cm3 and 85% moisture. Sampled 32-88.'
+  attach: material colonisation factor = Gross et al. 2016 seven-day areal biomass
+    relative to HDPE (FAB 14.7, PE 1.0, STL/GRA 0.53). It multiplies the areal
+    ATTACHMENT FLUX k_att -- not the inoculum and not the capacity -- so every arm starts
+    from the same seed and material decides only how fast cells land and keep landing.
+  D_S_eff: 1e-5 cm2/s (plant twin, readily biodegradable substrate) x 0.5 biofilm
+    reduction = 4.32e-5 m2/d
+  delta_S_floor: '50 um, this study''s choice: a floor on the heterotroph layer so
+    a bare carrier can be colonised'
+  gra_final_factor: 'Romeu et al. 2022: 44% wet-weight reduction on a graphene nanoplatelet
+    composite at 7 weeks'
+  gra_onset_d: '14 d, Romeu 2022: no effect during early attachment'
+  gra_tau_d: 10 d, placeholder time constant

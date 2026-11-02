@@ -1,0 +1,121 @@
+material,geometry,geometry_kind,feature_mm,bed_depth_mm,n_cells_in_bed,bin,area_fraction,rel_irradiance,mean_rel_irradiance
+PE,Flat plate,flat,,60.0,5,0,0.9027,0.0,0.0973
+PE,Flat plate,flat,,60.0,5,1,0.0,0.25,0.0973
+PE,Flat plate,flat,,60.0,5,2,0.0,0.4167,0.0973
+PE,Flat plate,flat,,60.0,5,3,0.0,0.5833,0.0973
+PE,Flat plate,flat,,60.0,5,4,0.0,0.75,0.0973
+PE,Flat plate,flat,,60.0,5,5,0.0973,1.0,0.0973
+PE,Corrugated sheet,corrugated,20.0,60.0,5,0,0.816,0.0005,0.1098
+PE,Corrugated sheet,corrugated,20.0,60.0,5,1,0.048,0.2638,0.1098
+PE,Corrugated sheet,corrugated,20.0,60.0,5,2,0.0413,0.3879,0.1098
+PE,Corrugated sheet,corrugated,20.0,60.0,5,3,0.0247,0.5762,0.1098
+PE,Corrugated sheet,corrugated,20.0,60.0,5,4,0.0047,0.7644,0.1098
+PE,Corrugated sheet,corrugated,20.0,60.0,5,5,0.0653,0.9623,0.1098
+PE,Gyroid lattice 20 mm,gyroid,20.0,60.0,3,0,0.864,0.0122,0.094
+PE,Gyroid lattice 20 mm,gyroid,20.0,60.0,3,1,0.036,0.2277,0.094
+PE,Gyroid lattice 20 mm,gyroid,20.0,60.0,3,2,0.018,0.4123,0.094
+PE,Gyroid lattice 20 mm,gyroid,20.0,60.0,3,3,0.02,0.5874,0.094
+PE,Gyroid lattice 20 mm,gyroid,20.0,60.0,3,4,0.016,0.7471,0.094
+PE,Gyroid lattice 20 mm,gyroid,20.0,60.0,3,5,0.046,0.9597,0.094
+PE,Gyroid lattice 10 mm,gyroid,10.0,60.0,6,0,0.9347,0.0058,0.0454
+PE,Gyroid lattice 10 mm,gyroid,10.0,60.0,6,1,0.018,0.2318,0.0454
+PE,Gyroid lattice 10 mm,gyroid,10.0,60.0,6,2,0.0087,0.4114,0.0454
+PE,Gyroid lattice 10 mm,gyroid,10.0,60.0,6,3,0.008,0.6137,0.0454
+PE,Gyroid lattice 10 mm,gyroid,10.0,60.0,6,4,0.0107,0.7389,0.0454
+PE,Gyroid lattice 10 mm,gyroid,10.0,60.0,6,5,0.02,0.9709,0.0454
+PE,Gyroid lattice 5 mm,gyroid,5.0,60.0,12,0,0.9713,0.0013,0.0233
+PE,Gyroid lattice 5 mm,gyroid,5.0,60.0,12,1,0.002,0.3012,0.0233
+PE,Gyroid lattice 5 mm,gyroid,5.0,60.0,12,2,0.004,0.4389,0.0233
+PE,Gyroid lattice 5 mm,gyroid,5.0,60.0,12,3,0.0047,0.6166,0.0233
+PE,Gyroid lattice 5 mm,gyroid,5.0,60.0,12,4,0.0027,0.7166,0.0233
+PE,Gyroid lattice 5 mm,gyroid,5.0,60.0,12,5,0.0153,0.9685,0.0233
+STL,Flat plate,flat,,60.0,5,0,0.9027,0.0,0.0973
+STL,Flat plate,flat,,60.0,5,1,0.0,0.25,0.0973
+STL,Flat plate,flat,,60.0,5,2,0.0,0.4167,0.0973
+STL,Flat plate,flat,,60.0,5,3,0.0,0.5833,0.0973
+STL,Flat plate,flat,,60.0,5,4,0.0,0.75,0.0973
+STL,Flat plate,flat,,60.0,5,5,0.0973,1.0,0.0973
+STL,Corrugated sheet,corrugated,20.0,60.0,5,0,0.816,0.0005,0.1098
+STL,Corrugated sheet,corrugated,20.0,60.0,5,1,0.048,0.2638,0.1098
+STL,Corrugated sheet,corrugated,20.0,60.0,5,2,0.0413,0.3879,0.1098
+STL,Corrugated sheet,corrugated,20.0,60.0,5,3,0.0247,0.5762,0.1098
+STL,Corrugated sheet,corrugated,20.0,60.0,5,4,0.0047,0.7644,0.1098
+STL,Corrugated sheet,corrugated,20.0,60.0,5,5,0.0653,0.9623,0.1098
+STL,Gyroid lattice 20 mm,gyroid,20.0,60.0,3,0,0.864,0.0122,0.094
+STL,Gyroid lattice 20 mm,gyroid,20.0,60.0,3,1,0.036,0.2277,0.094
+STL,Gyroid lattice 20 mm,gyroid,20.0,60.0,3,2,0.018,0.4123,0.094
+STL,Gyroid lattice 20 mm,gyroid,20.0,60.0,3,3,0.02,0.5874,0.094
+STL,Gyroid lattice 20 mm,gyroid,20.0,60.0,3,4,0.016,0.7471,0.094
+STL,Gyroid lattice 20 mm,gyroid,20.0,60.0,3,5,0.046,0.9597,0.094
+STL,Gyroid lattice 10 mm,gyroid,10.0,60.0,6,0,0.9347,0.0058,0.0454
+STL,Gyroid lattice 10 mm,gyroid,10.0,60.0,6,1,0.018,0.2318,0.0454
+STL,Gyroid lattice 10 mm,gyroid,10.0,60.0,6,2,0.0087,0.4114,0.0454
+STL,Gyroid lattice 10 mm,gyroid,10.0,60.0,6,3,0.008,0.6137,0.0454
+STL,Gyroid lattice 10 mm,gyroid,10.0,60.0,6,4,0.0107,0.7389,0.0454
+STL,Gyroid lattice 10 mm,gyroid,10.0,60.0,6,5,0.02,0.9709,0.0454
+STL,Gyroid lattice 5 mm,gyroid,5.0,60.0,12,0,0.9713,0.0013,0.0233
+STL,Gyroid lattice 5 mm,gyroid,5.0,60.0,12,1,0.002,0.3012,0.0233
+STL,Gyroid lattice 5 mm,gyroid,5.0,60.0,12,2,0.004,0.4389,0.0233
+STL,Gyroid lattice 5 mm,gyroid,5.0,60.0,12,3,0.0047,0.6166,0.0233
+STL,Gyroid lattice 5 mm,gyroid,5.0,60.0,12,4,0.0027,0.7166,0.0233
+STL,Gyroid lattice 5 mm,gyroid,5.0,60.0,12,5,0.0153,0.9685,0.0233
+GRA,Flat plate,flat,,60.0,5,0,0.9027,0.0,0.0973
+GRA,Flat plate,flat,,60.0,5,1,0.0,0.25,0.0973
+GRA,Flat plate,flat,,60.0,5,2,0.0,0.4167,0.0973
+GRA,Flat plate,flat,,60.0,5,3,0.0,0.5833,0.0973
+GRA,Flat plate,flat,,60.0,5,4,0.0,0.75,0.0973
+GRA,Flat plate,flat,,60.0,5,5,0.0973,1.0,0.0973
+GRA,Corrugated sheet,corrugated,20.0,60.0,5,0,0.816,0.0005,0.1098
+GRA,Corrugated sheet,corrugated,20.0,60.0,5,1,0.048,0.2638,0.1098
+GRA,Corrugated sheet,corrugated,20.0,60.0,5,2,0.0413,0.3879,0.1098
+GRA,Corrugated sheet,corrugated,20.0,60.0,5,3,0.0247,0.5762,0.1098
+GRA,Corrugated sheet,corrugated,20.0,60.0,5,4,0.0047,0.7644,0.1098
+GRA,Corrugated sheet,corrugated,20.0,60.0,5,5,0.0653,0.9623,0.1098
+GRA,Gyroid lattice 20 mm,gyroid,20.0,60.0,3,0,0.864,0.0122,0.094
+GRA,Gyroid lattice 20 mm,gyroid,20.0,60.0,3,1,0.036,0.2277,0.094
+GRA,Gyroid lattice 20 mm,gyroid,20.0,60.0,3,2,0.018,0.4123,0.094
+GRA,Gyroid lattice 20 mm,gyroid,20.0,60.0,3,3,0.02,0.5874,0.094
+GRA,Gyroid lattice 20 mm,gyroid,20.0,60.0,3,4,0.016,0.7471,0.094
+GRA,Gyroid lattice 20 mm,gyroid,20.0,60.0,3,5,0.046,0.9597,0.094
+GRA,Gyroid lattice 10 mm,gyroid,10.0,60.0,6,0,0.9347,0.0058,0.0454
+GRA,Gyroid lattice 10 mm,gyroid,10.0,60.0,6,1,0.018,0.2318,0.0454
+GRA,Gyroid lattice 10 mm,gyroid,10.0,60.0,6,2,0.0087,0.4114,0.0454
+GRA,Gyroid lattice 10 mm,gyroid,10.0,60.0,6,3,0.008,0.6137,0.0454
+GRA,Gyroid lattice 10 mm,gyroid,10.0,60.0,6,4,0.0107,0.7389,0.0454
+GRA,Gyroid lattice 10 mm,gyroid,10.0,60.0,6,5,0.02,0.9709,0.0454
+GRA,Gyroid lattice 5 mm,gyroid,5.0,60.0,12,0,0.9713,0.0013,0.0233
+GRA,Gyroid lattice 5 mm,gyroid,5.0,60.0,12,1,0.002,0.3012,0.0233
+GRA,Gyroid lattice 5 mm,gyroid,5.0,60.0,12,2,0.004,0.4389,0.0233
+GRA,Gyroid lattice 5 mm,gyroid,5.0,60.0,12,3,0.0047,0.6166,0.0233
+GRA,Gyroid lattice 5 mm,gyroid,5.0,60.0,12,4,0.0027,0.7166,0.0233
+GRA,Gyroid lattice 5 mm,gyroid,5.0,60.0,12,5,0.0153,0.9685,0.0233
+FAB,Flat sheet,flat,,60.0,5,0,0.9027,0.0,0.0973
+FAB,Flat sheet,flat,,60.0,5,1,0.0,0.25,0.0973
+FAB,Flat sheet,flat,,60.0,5,2,0.0,0.4167,0.0973
+FAB,Flat sheet,flat,,60.0,5,3,0.0,0.5833,0.0973
+FAB,Flat sheet,flat,,60.0,5,4,0.0,0.75,0.0973
+FAB,Flat sheet,flat,,60.0,5,5,0.0973,1.0,0.0973
+FAB,Corrugated on rigid support,corrugated,20.0,60.0,4,0,0.7873,0.0014,0.1293
+FAB,Corrugated on rigid support,corrugated,20.0,60.0,4,1,0.06,0.2597,0.1293
+FAB,Corrugated on rigid support,corrugated,20.0,60.0,4,2,0.04,0.3882,0.1293
+FAB,Corrugated on rigid support,corrugated,20.0,60.0,4,3,0.028,0.5559,0.1293
+FAB,Corrugated on rigid support,corrugated,20.0,60.0,4,4,0.0033,0.729,0.1293
+FAB,Corrugated on rigid support,corrugated,20.0,60.0,4,5,0.0813,0.9725,0.1293
+FAB,Pleated 20 mm,pleated,20.0,60.0,5,0,0.816,0.0,0.1188
+FAB,Pleated 20 mm,pleated,20.0,60.0,5,1,0.0273,0.2673,0.1188
+FAB,Pleated 20 mm,pleated,20.0,60.0,5,2,0.046,0.4179,0.1188
+FAB,Pleated 20 mm,pleated,20.0,60.0,5,3,0.032,0.578,0.1188
+FAB,Pleated 20 mm,pleated,20.0,60.0,5,4,0.012,0.7228,0.1188
+FAB,Pleated 20 mm,pleated,20.0,60.0,5,5,0.0667,0.9764,0.1188
+FAB,Pleated 10 mm,pleated,10.0,60.0,5,0,0.8347,0.0013,0.0901
+FAB,Pleated 10 mm,pleated,10.0,60.0,5,1,0.046,0.2692,0.0901
+FAB,Pleated 10 mm,pleated,10.0,60.0,5,2,0.0507,0.4089,0.0901
+FAB,Pleated 10 mm,pleated,10.0,60.0,5,3,0.0147,0.5355,0.0901
+FAB,Pleated 10 mm,pleated,10.0,60.0,5,4,0.018,0.7572,0.0901
+FAB,Pleated 10 mm,pleated,10.0,60.0,5,5,0.036,0.9568,0.0901
+FAB,Pleated 5 mm,pleated,5.0,60.0,5,0,0.864,0.0061,0.0681
+FAB,Pleated 5 mm,pleated,5.0,60.0,5,1,0.056,0.2464,0.0681
+FAB,Pleated 5 mm,pleated,5.0,60.0,5,2,0.0307,0.4249,0.0681
+FAB,Pleated 5 mm,pleated,5.0,60.0,5,3,0.024,0.5695,0.0681
+FAB,Pleated 5 mm,pleated,5.0,60.0,5,4,0.0087,0.7691,0.0681
+FAB,Pleated 5 mm,pleated,5.0,60.0,5,5,0.0167,0.9417,0.0681
