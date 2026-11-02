@@ -4,8 +4,7 @@ A three-guild biofilm model of a single carrier coupon in a stirred, illuminated
 of synthetic wastewater, together with an interactive page for exploring what the bench
 experiment it was built for could measure.
 
-**[Open the interactive explorer](https://USERNAME.github.io/REPOSITORY/)** &mdash; replace
-`USERNAME` and `REPOSITORY` once GitHub Pages is switched on.
+**[Open the interactive explorer](https://re-hodges.github.io/coupon-rig-explorer/)**
 
 The model tracks phototrophs, nitrifiers and heterotrophs growing as a film on a coupon,
 plus a suspended pool of cells that have not yet attached, and follows the ammonia,
@@ -64,7 +63,7 @@ The explorer is a single static file, so GitHub Pages serves it with no build st
 2. Go to **Settings &rarr; Pages**.
 3. Under **Build and deployment**, set **Source** to *Deploy from a branch*.
 4. Choose branch `main` and folder `/ (root)`, then **Save**.
-5. Wait a minute or two. The page appears at `https://USERNAME.github.io/REPOSITORY/`.
+5. Wait a minute or two. The page appears at `https://re-hodges.github.io/coupon-rig-explorer/`.
 
 The repository must be public for Pages on a free account; Pages from a private
 repository needs GitHub Pro. The empty `.nojekyll` file at the root tells GitHub to serve
