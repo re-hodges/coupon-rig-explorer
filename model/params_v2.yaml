@@ -51,8 +51,8 @@ parameters:
   D_S_eff: 4.32e-05
   delta_S_floor: 5.0e-05
   gra_final_factor: 0.56
-  gra_onset_d: 14.0
-  gra_tau_d: 10.0
+  gra_onset_d: 5.9
+  gra_tau_d: 12.8
 provenance:
   mu_max_h: 'RULED 31 Oct 2026: plant-level model, 3.2 /d at 20 degC (was 5.50, Wolf
     2007)'
@@ -83,5 +83,9 @@ provenance:
     a bare carrier can be colonised'
   gra_final_factor: 'Romeu et al. 2022: 44% wet-weight reduction on a graphene nanoplatelet
     composite at 7 weeks'
-  gra_onset_d: '14 d, Romeu 2022: no effect during early attachment'
-  gra_tau_d: 10 d, placeholder time constant
+  gra_onset_d: '5.9 d, REFIT 3 Nov 2026 to the 7 published time points of Romeu 2022 (Coatings
+    12:1775, wet weight d35/42/49) and Sousa-Cardoso 2023 (Nanomaterials 13:381, cells and
+    thickness d14/28/35/42). The former 14 d was read from Romeu''s abstract as no early effect;
+    the Sousa-Cardoso full text measures 22% reduction already at day 14, so no effect-free
+    window exists. RMSE falls 9.5 -> 5.2 percentage points.'
+  gra_tau_d: '12.8 d, REFIT 3 Nov 2026 to the same 7 points; no longer a placeholder.'

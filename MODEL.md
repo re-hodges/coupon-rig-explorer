@@ -1,402 +1,392 @@
-# The coupon-scale biofilm model
+# Coupon explorer — model details
 
-A description of what the model is and how it works. Terms are defined in
-[GLOSSARY.md](GLOSSARY.md); parameter values live in `params_v2.yaml` and rig
-dimensions in `rig.yaml`.
+Apple Springs carrier screening. Coupons magnet-mounted in divots on the first-stage RBC's
+steel bands. Rig geometry follows the operator's description of RBC 1.
 
----
+## 1. The system being modeled
 
-## 1. What it models
+Each RBC has two rotating round steel **end plates 6 ft (1.829 m) apart** on a common shaft,
+with the wafer pack turning between them. Two steel **bands** run axially from plate to plate
+at **0° and 180°**. Each band carries **divots** — sheltered recesses — and each divot holds
+**nine coupons of one material**, every coupon held in a magnet sandwich clamped to the divot
+floor. Three coupons are harvested on each of days **5, 7 and 10**.
 
-A single carrier coupon hanging in a stirred, illuminated vessel of synthetic
-wastewater. Three groups of organisms grow as a film on the coupon surface —
-**phototrophs** (algae and cyanobacteria, which need light), **nitrifiers**
-(which oxidize ammonia to nitrate and need oxygen), and **heterotrophs** (which
-eat dissolved organic matter and also need oxygen) — plus a fourth pool of
-cells still floating in the liquid. Cells land on the coupon from the liquid,
-grow, die, and slough off; while they do, they draw ammonia, nitrate,
-phosphorus and organic matter out of the liquid, which is replaced on a feeding
-schedule. The model tracks all of that through time and reports how much
-biomass sits on the coupon, how it is divided between the three groups, and how
-fast ammonia disappears.
+Two divots per material, one per photoperiod, gives **8 divots and 72 coupons**. Lamps sit in
+six existing round holes in the RBC cover, **three at each end**, so photoperiod is a function
+of **axial position along the shaft** — one end on the summer timer, the other on the winter
+timer.
 
-The purpose is to compare **carrier materials and geometries**: which surface
-holds the most living, light-reached, oxygen-reached film per unit of reactor
-volume and per kilogram of carrier. The same equations run at two scales — one
-coupon in a beaker (the bench rig) and a packed carrier in a reactor (the
-screening study) — differing only in how much surface there is per unit volume.
+The coupons ride the rotation. Each revolution carries them through the liquor and back out
+again, so substrate uptake happens submerged and oxygen uptake happens emergent — which is the
+RBC mechanism itself rather than an approximation to it.
 
----
+**The system is open.** The coupons sit in the plant's own first-stage tank, so bulk ammonia,
+nitrate, phosphate, BOD₅ and dissolved oxygen are **imposed boundary conditions** set by the
+plant. A few hundred cm² of coupon cannot move them. Consequently the carrier-area-to-liquid-
+volume ratio `a_v` multiplies a zero derivative and is inert; it is carried in the state only so
+the suspended pool stays dimensionally consistent.
 
-## 2. State variables
+The model therefore predicts what the coupons genuinely measure — areal biomass by guild, film
+thickness, and areal removal flux — and does not predict bulk chemistry, because the coupons do
+not control it.
 
-Everything on the carrier is carried as **areal** biomass: grams of dry weight
-per square meter of carrier surface. Liquid concentrations are per cubic meter
-(numerically the same as mg/L).
+**Mount radius is fixed by the hardware.** The bands hold every coupon at **r/R = 0.95**, the
+most-submerged, least-lit and highest-shear station on the wheel, so radius is not a design
+choice and `f_wet` is a constant 0.4469. The design axis in its place is **divot shelter**,
+which the band mounting introduces and which nothing measures.
 
-| Symbol | Meaning | Units |
+## 2. Governing equations
+
+Areal biomass per guild `i ∈ {p, n, h}`, on each irradiance bin:
+
+    dX_i/dt = growth_i + attachment_i − decay_i − detachment_i
+
+**Phototrophs** grow only while lit, Monod in light, nitrogen and phosphorus:
+
+    μ_p = μ_max,p · I̅/(K_I + I̅) · N/(K_N,p + N) · S_P/(K_P,p + S_P) · θ_p^(T−20) · free · α(t)
+
+`I̅` is the Beer–Lambert average of the bin irradiance through the film, so a thickening film
+self-shades.
+
+**Nitrifiers** use a measured areal form:
+
+    r_N = rN_ref · (X_n/Xn_ref) · S_NH/(K_N,n + S_NH) · θ_n^(T−20) · f_comp · f_wet · η_O2 · free
+
+**Heterotrophs** are Monod on BOD and confined to the depth BOD actually reaches. That
+stratification is what produces guild coexistence: a single shared capacity pool gives a
+knife-edge instead.
+
+**Oxygen is a state inside the film**, with bulk `S_O` imposed at the outer boundary.
+Phototrophs are a source, nitrifiers and heterotrophs sinks. It is solved by an analytic
+zero-order penetration depth rather than a PDE:
+
+    δ = √(2 D S / R_v),    η_O2 = min(1, δ/L_f)
+
+**Attachment is a rate, not an initial condition**, and it is mass-conserving: cells move from a
+finite suspended pool onto the carrier and detachment returns them. Every arm is seeded
+identically; what differs between materials is how readily cells stick and stay.
+
+**Primary response:**
+
+    J_V = a_eff · J_A,     a_eff = a_geo · f_col · (1 − f_occ)
+
+`J_A` is the areal removal flux reported per the exposed coupon area defined in §5.
+
+## 3. The rotation duty cycle
+
+**Wet fraction depends on mount radius.** For a given fraction of the disc *area* submerged, the
+waterline sits `u·R` below the shaft centerline, where
+
+    [arccos(u) − u√(1−u²)] / π = submergence        →  u = 0.1577 at 40 %
+
+and a point at radius `r` spends this share of each revolution under water:
+
+    f_wet(r) = ½ + arcsin(−uR/r)/π
+
+| r/R | 1.00 | **0.95** | 0.85 | 0.55 | 0.50 | 0.35 | 0.25 |
+|---|---|---|---|---|---|---|---|
+| `f_wet` | 0.450 | **0.4469** | 0.441 | 0.407 | 0.398 | 0.351 | 0.283 |
+
+The band sits at r/R = 0.95, so **`f_wet` = 0.4469** — the coupons are submerged 44.7 % and
+emergent 55.3 % of every revolution. The nominal 40 % areal submergence is recovered only near
+r/R = 0.5 and does not describe the band.
+
+**Light has a hard ceiling.** Submerged means dark — mixed liquor is opaque — so
+
+    delivered_h = timer_h × (1 − f_wet)
+
+At the band the ceiling is **13.27 h/d**. The two timer settings deliver:
+
+| photoperiod | timer | delivered at the band |
 |---|---|---|
-| `Snh` | ammonia-N in the liquid | g N m⁻³ |
-| `Sno` | nitrate-N in the liquid | g N m⁻³ |
-| `Sp`  | soluble phosphorus in the liquid | g P m⁻³ |
-| `Sb`  | biodegradable organic matter in the liquid | g BOD m⁻³ |
-| `Xpl` | suspended cells not yet attached | g DW m⁻² of carrier |
-| `Xp`  | phototrophs in the film | g DW m⁻² |
-| `Xn`  | nitrifiers in the film | g DW m⁻² |
-| `Xh`  | heterotrophs in the film | g DW m⁻² |
+| summer solstice | 15.50 h | **8.573 h/d** |
+| winter solstice | 8.87 h | **4.906 h/d** |
 
-The three film groups are each resolved into **irradiance bins** — patches of
-the carrier that receive different amounts of light because of self-shading by
-the carrier itself. A bin *b* carries an area weight *w_b* (the fraction of
-carrier surface in that bin) and a relative irradiance *E_b*. The suspended
-pool is held in areal units too, so that every state is the same order of
-magnitude and the solver behaves.
+A 24 h photoperiod is physically unreachable on a rotating disc. Timer hours and delivered hours
+are reported separately throughout and are never conflated.
 
----
+**Oxygen per emergent pass**, as √(2 D t) at `D_O2_eff` = 1.08 × 10⁻⁴ m² d⁻¹:
 
-## 3. The equations
+| rpm | 0.5 | 1.0 | 1.5 | 2.0 | 2.5 | 4.0 |
+|---|---|---|---|---|---|---|
+| penetration (µm) | 407 | 288 | 235 | 204 | 182 | 144 |
 
-### 3.1 Light reaching the cells
+Slowing the wheel roughly doubles how deep oxygen reaches per pass while simultaneously cutting
+shear. Those are opposing effects with an optimum between them, which is why rotation rate is a
+variable here rather than a fixed condition — and §10.4 shows the optimum is real.
 
-Light is attenuated twice: once by the carrier's own shape, once by the film.
+## 4. Shear, shelter and detachment
 
-    I_b = I₀ · E_b                                   (carrier self-shading)
-    τ   = k_abs · Xp
-    Ī_b = I_b · (1 − e^(−τ)) / τ                     (Beer–Lambert through the film)
+Detachment is first-order in areal biomass. Because areal biomass and film thickness are
+proportional, that makes the detachment *flux* proportional to thickness.
 
-each patch of carrier starts with a fraction `E_b` of the
-incident light because neighboring surfaces shade it; the cells in that patch
-then shade each other, so the average cell sees less than the cells at the
-surface. The second line is the depth-average of exponential decay.
+Shear enters as a modifier whose exponent is **sampled across the ensemble, not fixed**:
 
-### 3.2 Phototroph growth
+    k_det = k_det,base · (τ_local / τ_ref)^n_shear ,    n_shear ∈ {0, 0.5, 1}
 
-    μ_p = μ_max,p · [Ī/(K_I+Ī)] · [N/(K_N,p+N)] · [Sp/(K_P,p+Sp)] · θ_p^(T−20) · free · α
+`τ_ref` anchors the baseline at the plant's present operating point — **4 rpm, at the band,
+unsheltered** — so changing `n_shear` does not shift the reference case. `n_shear = 0` means no
+shear dependence at all.
 
-growth runs at its maximum rate only when light, nitrogen
-(ammonia plus nitrate) and phosphorus are all plentiful; each shortage
-multiplies the rate down by a saturating (Monod) factor. Temperature scales it
-by the usual Arrhenius-style factor. `free` and `α` are defined below.
-Phototrophs grow only while the lamps are on, and respire at rate `b_p` only
-while they are off.
+**Divot shelter.** A coupon recessed below the band surface feels less than the free-stream
+wall shear:
 
-### 3.3 Carrying capacity — the film cannot grow forever
+    τ_local = φ_shear · τ_free ,    φ_shear ∈ {0.3, 0.5, 1.0}
 
-    free = max(0, 1 − (Xp+Xn+Xh) / X_cap)
+`φ_shear = 1` is a coupon flush with the band. **This factor has no source** — no measurement
+and no literature value — so it is sampled rather than fixed, and it appears in the Data sources
+tab under "no source" beside `K_comp`. The divot also **dims** the coupon by a view factor of
+0.90, applied to irradiance and never to hours, which would double-count the rotation duty.
 
-as the film thickens, less room is left; when the total areal
-biomass reaches `X_cap` all growth and all attachment stop. This is a single
-shared ceiling: a surface crowded with heterotrophs leaves no space for
-nitrifiers. **Capacity is deliberately the same for every material** — nothing
-has been measured that would justify giving the fabric a larger one — which is
-why the model predicts no lasting material difference except for graphene.
+The exponent is sampled because the literature does not support a single value, and the
+disagreement is between the most-cited sources on the question:
 
-### 3.4 Nitrification
+- **Peyton & Characklis 1993** (doi:10.1002/bit.260410707) crossed three shear levels with three
+  substrate loadings and report **no significant influence of shear** on detachment rate,
+  proposing an expression in substrate utilization, yield and film thickness instead.
+- **Horn, Reiff & Morgenroth 2003** (doi:10.1002/bit.10503) used growth-rate- and thickness-based
+  forms across all three experimental phases, including a deliberate shear step-up.
+- **Rittmann 1982** (doi:10.1002/bit.260240219) is the classic shear-dependent source and the
+  most cited on the question.
 
-    r_N = r_N,ref · (Xn/Xn,ref) · [Snh/(K_N,n+Snh)] · θ_n^(T−20) · f_comp · f_wet · [S_O/(K_O,A+S_O)] · free · α
-    f_comp = K_comp / (K_comp + Xh)
+**Rittmann's expression.** The shear loss is a first-order term *added* to the decay
+coefficient, with **exponent 0.58** on shear stress and a thickness amplification above a 30 µm
+film:
 
-ammonia removal is proportional to how many nitrifiers are
-present, limited by how much ammonia there is and how much oxygen, and
-suppressed by heterotrophs — `f_comp` is the competition term: the more
-heterotrophs on the surface, the less of it nitrifiers hold. Nitrifier biomass
-then grows at yield `Y_n` per gram of nitrogen oxidized.
+    b' = b + 8.42e-2 · σ^0.58                                for L_f < 0.003 cm
+    b' = b + 8.42e-2 · σ^0.58 · (1 + 433.2 (L_f − 0.003))     for L_f > 0.003 cm
 
-### 3.5 Heterotrophs are confined to the depth that BOD reaches
+Our sampled levels {0, 0.5, 1} bracket 0.58, so the ensemble is not mis-specified and can now be
+narrowed. Note that Rittmann's form is **also thickness-dependent**, so the three sources
+disagree about whether an explicit shear term is needed *on top of* thickness, not about whether
+thickness matters. Modeled films of 59–124 µm sit on the amplified branch.
 
-    J_S   = Xh · μ_max,h / Y_h · [Sb/(K_S,h+Sb)]      (demand)
-    δ_S   = √(2 · D_S,eff · Sb / (J_S / L_f))         (penetration depth)
-    cap_h = ρ_dry · min(δ_S, L_f + δ_floor)
-    free_h = max(0, 1 − Xh/cap_h)
+Local wall shear uses the von Kármán **laminar** rotating-disc result:
 
-organic matter diffusing in from the liquid is consumed as it
-goes, so it only penetrates a certain depth. Heterotrophs can occupy only that
-depth; the rest of the film is left to the others. More BOD in the feed means a
-deeper heterotrophic layer and less room for nitrifiers, so the competition
-between the two is a consequence of diffusion rather than an imposed rule. The
-floor `δ_floor` (50 µm) lets a bare carrier be colonized at all.
+    τ_w = 0.512 · ρ · √ν · ω^{3/2} · r
 
-### 3.6 Oxygen effectiveness
+At the band this gives **0.0019–0.141 Pa** across speeds and shelter levels — the bottom of the
+range over which biofilm shear effects are reported.
 
-    J_O2 = 4.57·r_N + (O₂ per BOD)·growth_h/Y_h − Y_O2,p·(photosynthesis − respiration)
-    δ    = √(2 · D_O2,eff · S_O / (J_O2 / L_f))
-    η    = min(1, δ / L_f)
+**Regime warning.** The disc Reynolds number `ωR²/ν` crosses the ≈3 × 10⁵ transition between
+2.5 rpm (2.30 × 10⁵) and 4 rpm (3.67 × 10⁵), so the laminar correlation is out of range at the
+plant's present speed. The model raises `laminar_ok = False` rather than reporting silently; 144
+of the 864 arms carry that flag.
 
-add up how much oxygen the film demands, subtract what the
-phototrophs make, and ask how far oxygen can diffuse in before it is used up.
-If that depth is less than the film thickness, only that fraction of the film
-is aerobic, and the aerobic rates (nitrification and heterotrophic growth) are
-multiplied by η. Bulk dissolved oxygen `S_O` is imposed, not simulated — the
-vessel is stirred and open.
+## 5. The coupon area convention
 
-### 3.7 Attachment and detachment
+**All areal quantities are reported per the exposed coupon area `A_exp`. The roughness ratio
+`r = 1 + Sdr` acts only through attachment, never as an area multiplier.**
 
-    j = k_att · a_mat · [Xpl/(K_pl+Xpl)]
-    d(Xp,Xn,Xh)/dt ← + j·fᵢ·free … − k_det·Xᵢ
-    dXpl/dt = Σ_b w_b (detached − attached) − b_pl·Xpl
+1. **It avoids a double-count.** The same `r` scales wetting through Wenzel, and the ensemble
+   already samples wettability for steel and fabric. An `r`-driven area term on top would count
+   one physical cause twice. Gross et al. use `r` as the attachment texture variable — that is
+   where it belongs.
+2. **The credit is negligible at this scale.** Exact arc-length integration gives `r` = 1.006 at
+   h/λ = 0.05 and 1.024 at 0.10. Reaching `r ≈ 1.5` needs h/λ ≈ 0.52, features as tall as they
+   are wide — mesh and texture scale, i.e. the geometry axis, where `a_geo` already captures it.
+3. **`A_true` is ill-posed for the fabric.** Height maps cannot represent undercuts and fibers
+   always undercut, so ISO 25178 areal parameters are formally undefined there.
+4. **It keeps the plant join dimensionally honest.** `a_eff` is built from `a_geo`, a geometric
+   area; a `J_A` per true area would put a stray factor `r` into `J_V = a_eff · J_A`.
 
-cells land on the coupon at a rate set by how many are in
-suspension and how sticky the material is; the material factor `a_mat` is the
-**only** place material identity enters (apart from graphene, below). They
-leave again at a constant fractional rate. Attached and suspended cells are the
-same biomass moving between two places — nothing is created — and the pool runs
-down as it is drawn on, which is why a material advantage in attachment fades
-once the pool is depleted. Attachment is shut off by the same `free` term as
-growth, so it cannot push the film past capacity.
+`A_true` is computed and deliberately carried unused, so the choice is auditable. A unit test
+inflates `r` to 1.50 and asserts the denominator does not move.
 
-### 3.8 Lag
+**The counter-argument, and why it was declined:** a rough surface does present more colonizable
+area. But cell-accessible area is not true area — features finer than a cell add area no cell can
+enter — and at flat-coupon scale the dispute is worth 1–2 %, inside measurement error.
 
-    α(t) = 1 / (1 + (e^(ν·lag) − 1) · e^(−ν·t)),   ν = μ_max,h
+## 6. Coupon geometry and the magnet mounting
 
-real cells take hours to days to start growing after being
-transferred. This is the standard Baranyi–Roberts form: growth ramps from near
-zero up to full rate over about `lag_d` days. **The model can express a lag; it
-currently does not** — `lag_d = 0`, which makes α ≡ 1 exactly. The term is
-there so that the day 3 / 7 / 10 harvests can rule a lag in or out against a
-model capable of showing one. It delays growth only, not attachment.
+The coupon is a **square of side 1 9/16 in = 39.6875 mm**, per the specification.
 
-### 3.9 Graphene
+It is held in a magnet sandwich — one round magnet above, one below — and the lower magnet
+clamps the assembly into the divot:
 
-    X_cap(t) = X_cap · [1 − (1 − 0.56)·(1 − e^(−(t−14)/10))]   for t > 14 d
+    magnet  |  coupon  |  magnet  |  band floor
 
-A graphene-coated surface is modeled as bare steel with a
-capacity that falls as the film matures, reaching 56 % of the normal ceiling,
-after Romeu et al. (2022), who report 44 % less biofilm by wet weight at seven
-weeks with no effect during early attachment. Until coupon contact angle and
-roughness are measured this is the only difference between graphene and steel.
+**The mounting constrains the reporting denominator in two ways at once.** The lower face is
+not a free growth surface: its center is covered by the lower magnet and its annulus faces the band
+floor across the magnet thickness, a dark, near-zero-shear crevice. The upper face loses the
+magnet's footprint. So the lit, sheared, modeled surface is one face net of one magnet:
 
-**This is the model's weakest transfer, and it carries the whole graphene
-result.** Romeu et al. tested graphene nanoplatelets dispersed in an **epoxy
-resin**, against glass and plain epoxy controls, in a **marine** system with
-marine cyanobacteria. The arm modeled here is a **coating on stainless steel**,
-compared against bare stainless steel, in wastewater. The authors further report
-that the dominant measured difference between composite and control was
-**roughness, about 1000× higher** — so the 44 % reduction may be a topographic
-effect of that composite rather than a property of graphene that a coating would
-reproduce. They also report larger reductions on other measures at seven weeks
-(54 % thickness, 82 % biovolume, 64 % surface coverage); wet weight is the
-smallest of the four and therefore the most conservative choice, but it is a
-choice. Because material differences otherwise wash out within about a week —
-attachment and detachment only change how fast a carrier reaches the same
-capacity-limited plateau — this single borrowed parameter is the only reason
-graphene behaves differently from steel at all. It should be replaced by a
-measurement on the project's own coupon before any graphene claim is made.
+| quantity | value |
+|---|---|
+| one whole face | 15.751 cm² |
+| magnet footprint, 19.05 mm dia | 2.850 cm² (18.1 % of a face) |
+| **`A_exp` = one face − one magnet** | **12.901 cm² = 0.001290 m²** ← the denominator |
 
----
+This supersedes the previous "both faces, 28.670 cm²" denominator, a **2.22× reduction**. To be
+precise about what it does and does not change: `J_A` is *per* unit area and is unaffected;
+everything *per coupon* — harvestable biomass, assay sufficiency — falls by 2.22×.
 
-## 4. Area per unit volume (`a_v`)
+**Deliberately excluded, and both make the harvest estimate a lower bound:**
 
-Every rate in §3 is **per square meter of carrier surface**. What the
-experiment actually measures is a concentration in the liquid, and `a_v`
-(m² m⁻³) — wetted carrier area per unit of liquid volume — is what converts
-between the two:
+- the underside crevice annulus, another 12.90 cm² — wetted and colonizable but unlit and
+  essentially unsheared, a different environment this one-compartment model does not simulate;
+- the four edges, 3.18 cm² at a 2 mm placeholder thickness — excluded to stay consistent with
+  the projected-area convention in §5.
 
-    r_v = a_v · Σ_b w_b · f_col,b · (1 − f_occ,b) · r_a,b
+**A measurement discrepancy, recorded rather than resolved.** Caine's fabricated coupon measures
+36.2 ± 0.3 × 39.6 ± 0.1 mm from his scale photo at 26.8 px/mm over ten cut lines. The 39.6 mm
+axis matches the 1 9/16 in specification to 0.1 mm; the other axis is about 3.5 mm narrow. The
+simulator uses the square specification, so nominal area is **1.0988×** the as-fabricated area —
+a result read against the nominal denominator is biased about 9.9 % low.
 
-where `w_b` is the area fraction of irradiance bin `b`,
-`f_col = 1 − e^(−X/2)` is the colonized fraction of the surface, and `f_occ`
-is the share of pores bridged shut by the film. For a flat coupon the sum has
-few bins and no occlusion, and it reduces to `a_eff · J_A`, the form used in
-the manuscript.
+## 7. Placeholders
 
-For the bench rig `a_v` is one coupon's wetted area divided by the vessel's
-working volume, both from `rig.yaml`: currently 25 cm² in 1.0 L, giving
-`a_v = 2.5 m² m⁻³`. **Both numbers are flagged `provenance: placeholder` and
-are waiting to be measured.** `a_v` is the single number that sets how fast
-bulk concentrations move — the same film empties a small vessel quickly and a
-large one slowly — which is why it is the first control in the explorer, and
-why the feeding schedule has to be re-derived if the measurement comes back
-near 15 (three coupons, both faces) or 30 m² m⁻³. At 30 no manual schedule
-keeps up and the rig would need a pump.
+Values marked **placeholder** are best estimates committed so the model can run. They are not
+measurements and no conclusion should rest on them; they are listed for replacement in
+`FIELD_MEASUREMENTS_RBC1.md`.
 
-`f_occ` is **exploratory**: it is computed and reported, but the headline
-ranking is given with and without it, because nothing has been measured
-against which to check it.
+| quantity | value | provenance | confidence |
+|---|---|---|---|
+| media disc / end-plate diameter | 2.0 m | **placeholder** | **low** — measure first |
+| shaft span between plates | 1.8288 m | **reported** (6 ft, Anthony) | high |
+| band radius | r/R = 0.95 | **placeholder** | medium |
+| bands | 2, at 0° and 180° | **reported** | high |
+| divots per band | 4, two near each end | **placeholder** | medium |
+| coupons per divot | 9 | **reported** | high |
+| divot cavity | 140 × 140 mm, 10 mm deep | **placeholder** | **low** |
+| coupon recess below band face | 3 mm | **placeholder** | **low** |
+| **shelter factor φ_shear** | **0.3 / 0.5 / 1.0 sampled** | **no source at all** | **lowest** |
+| divot view factor | 0.90 | **placeholder** | **low** |
+| submergence | 40 % areal | RBC standard | medium |
+| waterline depth | 0.1577 R | derived from submergence | derived |
+| rotation now | 4.0 rpm | **reported** (plant) | high |
+| band tip speed @ 4 rpm | 0.398 m s⁻¹ | derived (guideline ≈0.30) | derived |
+| coupon | 39.6875 mm square | **reported** (specification) | high |
+| magnet | 19.05 mm dia × 6.35 mm thick | dia **reported**, thickness **placeholder** | medium |
+| lamp fixtures | 6, three per end, in cover holes | **reported** | high |
+| lamp height above waterline | 0.5 m | **placeholder** | low |
+| cover hole diameter | 150 mm | **placeholder** | low |
+| ambient daylight | none — indoor, under cover | **reported** | high |
+| photoperiod | 15.50 / 8.87 h timer | **computed** — Rapid City 44.0805 °N solstices | high |
+| bulk NH₄-N | 30 mg L⁻¹ | plant records / technical memorandum | medium |
+| bulk BOD₅ | 72 / 120 mg L⁻¹ | plant lab records range | medium |
+| temperature | 15 °C | plant band 12.2–18.3 °C | high |
+| bulk DO | from `params_v2.yaml` | **assumed** | **low** — ask if logged |
+| roughness `r` | 1.01 / 1.02 / 1.02 / undefined | **placeholder** — no coupon profiled | **low** |
+| assay minima | 1.0 / 0.5 / 0.05 mg | **placeholder** — not from a protocol | low |
 
-> **Out of scope for this round.** The same equation extends to a packed
-> carrier in a reactor, where `a_v`, the pore-aperture distribution and the
-> irradiance bin weights are built by `geometry.py` and `irradiance.py` from a
-> voxelized carrier. That pipeline exists and drives the carrier screening
-> study, but nothing in the bench experiment tests it, so reactor-scale
-> extrapolation is deliberately left for later.
+## 8. Assumptions
 
----
+1. **No optical cross-contamination between the two ends.** Asserted by the project team and
+   carried as a **limitation**, not a result. With lamps 6 ft apart in a shared cover and bands
+   that may run outside the wafer pack, some light from one end's fixtures will reach the other
+   end's coupons. That crosstalk is not modeled, so the contrast between the two photoperiods
+   is an **upper bound** on what the rig will deliver. Baffling or shrouding the fixtures is
+   cheap before fabrication and impossible after.
+2. **Timescale separation.** Rotation (15–120 s) and the lamp timer (hours) are treated as
+   independent, so the joint light duty is their product. Justified by roughly three orders of
+   magnitude of separation, but it is an assumption.
+3. **Pulsed light integrates.** Light arriving in short pulses is treated as a time average for
+   photosynthesis. Flashing-light enhancement occurs at far higher frequencies; not tested here.
+4. **The divot shelter is a single scalar.** One factor dims the lamp and another scales the
+   shear; in reality both depend on recess depth, divot wall angle and the coupon's angular
+   phase relative to the fixture. Not represented.
+5. **Coupons do not perturb the bulk.** Safe at plant scale; it is what makes `a_v` inert.
+6. **The two bands are replicates, not treatments.** Angular position on a turning wheel is a
+   phase, not a location, so bands at 0° and 180° sample the same duty cycle. This holds only if
+   their divots are at matched axial positions and matched depths. Note that with 8 divots over
+   2 bands, each material × photoperiod appears on exactly **one** band, so band is confounded
+   with material and the three coupons per harvest are within-divot replicates.
+7. **No drying when emergent.** Reasonable in a humid indoor building at 12–18 °C; **fails if the
+   wheel stops**, which is why stoppages must be logged.
+8. **Isothermal.** Every arm runs at a fixed temperature; the plant's seasonal swing is explored
+   by changing that temperature, not by driving a time series.
 
-## 5. Parameters
+## 9. Known discrepancies, recorded rather than tuned away
 
-Status: **L** from the literature or the plant model · **D** derived or
-calibrated from such a value · **U** unmeasured, given a defensible value and
-varied in the ensemble. No parameter is yet measured on this system; that is
-what the bench experiment is for. Author–year keys resolve in §8.
+1. At low feed BOD the areal nitrification rate reaches values above the literature band. The
+   areal form is linear in nitrifier biomass and the model runs far from its calibration point.
+2. No inert or EPS fraction, so film thickness sits at **59–124 µm**, below the 151–412 µm
+   reported on RBC media by Hassard et al. (2014). Because the film stays thin, oxygen never
+   limits, so phototrophic oxygen production buys the nitrifiers nothing while the phototrophs
+   still occupy film capacity. The modeled light effect on nitrification is therefore one-sided
+   by construction — which is why §10.3 shows photoperiod moving biomass but not flux.
+3. **Graphene-coated steel is distinguished from bare steel only by a maturation factor** with a
+   fitted onset at 5.9 d. The consequence for the experiment is in §10.5 and it is severe.
+4. `f_occ` is exploratory and simulation-only; on flat coupons it is ≈0 and carries no weight.
+5. The laminar shear correlation is out of range at 4 rpm (§4).
+6. Raman work on the graphene coupon suggests the coating covers **under half** the surface at
+   micron scale, so that arm should be read as an area-weighted mixture. **Not represented.**
+7. **The fabric's fiber-scale area is not in the model.** A fabric sheet is treated as a solid
+   slab, so its `a_geo` (171.7 m²/m³ flat) sits only 13 % above HDPE's (151.9), and that 13 %
+   comes from sheet thickness, not fibers. A real nonwoven carries of order 7–16 m² of fiber per
+   m² of footprint. The fabric's entire advantage therefore sits in its attachment factor, which
+   means **unmeasured area is currently being read as a material effect**. The arithmetic is
+   self-consistent because the denominator is projected area throughout, but the attribution is
+   not established. If a supplier figure for true fiber area is adopted, the attachment factor
+   must be re-derived against it rather than kept alongside it.
+8. **The underside crevice is not simulated** (§6), so every per-coupon biomass figure is a
+   lower bound.
 
-| Symbol | What it is | Value | Units | Source | Status |
+## 10. Results from the 864-arm band-mounted grid
+
+4 materials × 2 photoperiods × 6 rotation rates × 3 shear exponents × 3 shelter levels × 2 feed
+loads = **864 arms**, 60 days, 15 °C. All converged; none non-finite.
+
+**1. The material ranking is invariant from day 7 onward.** `fabric > HDPE > bare steel >
+graphene-coated steel` holds in **all 216** conditions at days 7, 10 and 60, with no inversion.
+Mean flux relative to HDPE: fabric **1.37×**, bare steel **0.76×**, graphene **0.57×** at day 60.
+Subject to the fabric-area caveat in §9.7.
+
+**2. Detachment is helping, and sheltering the coupons hurts.** With the shear exponent at 1,
+raising the shelter factor from 0.3 to 1.0 — i.e. moving the coupon flush with the band —
+**raises** day-60 flux by 2.2–2.6× (fabric 0.149 → 0.381, HDPE 0.135 → 0.291 g N m⁻² d⁻¹). More
+shear strips film, the thinner film oxygenates and lights better, and flux rises. A deep divot
+is a comfortable place for a coupon and a poor place for nitrification.
+
+**3. Photoperiod moves biomass but barely moves flux.** Summer yields more total biomass in
+every arm, but day-60 flux differs by under 1 % for HDPE and bare steel, and is very slightly
+**higher in winter** for graphene. The mechanism is the one identified earlier: phototrophs
+crowd nitrifiers out of the shared capacity term, and because the film is too thin for oxygen
+ever to limit (§9.2), the phototrophs' oxygen production returns nothing.
+
+**4. Rotation rate has a genuine optimum for the steels.** At `n_shear` = 1 and no shelter,
+day-60 flux for bare steel peaks at **2.5 rpm** (0.312) and falls at 4 rpm (0.301); graphene
+peaks at 2.5 rpm (0.234) and falls to 0.229. Fabric and HDPE keep rising to 4 rpm. This is the
+oxygen-penetration-versus-shear trade-off of §3 appearing as a turning point.
+
+**5. The proposed harvest schedule cannot test the graphene hypothesis.** Graphene and bare
+steel differ in this model only through a maturation factor with onset 5.9 d, so:
+
+| harvest | GRA vs STL, areal biomass | GRA vs STL, flux |
+|---|---|---|
+| day 5 | **0.000 %** — identical to machine precision in all 216 arms | 0.000 % |
+| day 7 | 0.010 % | 0.104 % |
+| day 10 | 0.257 % | 1.09 % |
+| day 60 | 7.75 % | 24.3 % |
+
+Through day 10 the gap stays under 0.3 % of biomass, far inside coupon-to-coupon scatter at
+n = 3. Usable separation arrives past roughly day 21. This is a statement about the model's
+structure as much as about the coating: the model contains **no early-time mechanism** —
+wettability, coverage fraction — that could produce an early difference, and the real coupons
+might. Reported as a design finding, not a prediction of null result.
+
+**6. Every harvest clears every assay minimum.** The worst arm yields **45.0 mg** from the three
+day-5 coupons against a 1.0 mg dry-weight threshold — and that is the lower bound of §6, which
+excludes the crevice and the edges.
+
+**7. 144 of 864 arms (all 4 rpm) are outside the laminar correlation's range** and are flagged
+rather than reported silently.
+
+**8. The three guilds do not share a driver**, which is why they are reported separately rather
+than summed. Total Sobol indices on the same factorial, by response:
+
+| design factor | total biofilm | phototrophs | nitrifiers | heterotrophs | removal flux |
 |---|---|---|---|---|---|
-| `I0` | Incident irradiance at the vessel | 110 | µmol m⁻² s⁻¹ | assay irradiance of Gross et al. (2016), 110–120; no lamp specification exists for this rig, swept 72–150 | U |
-| `k_abs` | Film light-absorption coefficient | 0.21 | m² g⁻¹ DW | Ma et al. (2023), 0.18–0.29 | L |
-| `K_I` | Light half-saturation constant | 50 | µmol m⁻² s⁻¹ | typical microalgal value, no source paper; swept 25–100 | U |
-| `mu_max_p` | Maximum phototroph growth rate | 4.53 | d⁻¹ | **calibrated** so the model reproduces the Gross et al. (2016) seven-day areal biomass; replaced a PHOBIA placeholder | D |
-| `b_p` | Phototroph decay (dark respiration) rate | 0.17 | d⁻¹ | Edmundson & Huesemann (2015), night biomass loss | L |
-| `K_N_p` | Phototroph nitrogen half-saturation | 0.017 | g N m⁻³ | Wolf et al. (2007) Table VI, their citation to Eppley et al. (1969) | L |
-| `K_P_p` | Phototroph phosphorus half-saturation | 0.02 | g P m⁻³ | typical microalgal value, no source paper; swept 0.005–0.1 | U |
-| `fN_p`, `fP_p` | Nitrogen and phosphorus content of phototroph biomass | 0.048, 0.0099 | g g⁻¹ DW | Boelee et al. (2011), nutrient-replete biofilm | L |
-| `theta_p`, `theta_h` | Arrhenius coefficients, phototrophs and heterotrophs | 1.07 | – | conventional suspended-growth value (Henze et al. 2000); not measured on a biofilm | U |
-| `rN_ref` | Reference areal nitrification rate | 4.2 | g N m⁻² d⁻¹ | Németh et al. (2023), midpoint of 2.96–5.45 — a membrane-aerated reactor, not an RBC | **U** |
-| `Xn_ref` | Nitrifier biomass the reference rate is defined at | 0.71 | g DW m⁻² | `Y_n · rN_ref / μ_max,N`, with μ_max,N = 1.0 d⁻¹ from Wolf et al. (2007) Table VI | D |
-| `K_N_n` | Ammonia half-saturation, nitrifiers | 1.0 | g N m⁻³ | Wolf et al. (2007) Table VI (the plant model uses 0.7) | L |
-| `Y_n` | Nitrifier biomass yield per unit nitrogen | 0.17 | g DW g⁻¹ N | Wolf et al. (2007) Table VI, 0.24 g COD g⁻¹ N ÷ 1.42 | D |
-| `theta_n` | Arrhenius temperature coefficient, nitrifiers | 1.025 | – | Németh et al. (2023), 1.024–1.026 | L |
-| `mu_max_h` | Maximum heterotroph growth rate | 3.2 | d⁻¹ | Copp (2024) plant model at 20 °C; replaced 5.5 d⁻¹ from Wolf et al. (2007) | L |
-| `K_S_h`, `Y_h` | Substrate half-saturation and yield, heterotrophs | 4.0, 0.44 | g m⁻³, g g⁻¹ | Wolf et al. (2007) Table VI; BOD treated as biodegradable COD | L |
-| `b_n`, `b_h` | Decay rates, nitrifiers and heterotrophs | 0.15, 0.40 | d⁻¹ | Wolf et al. (2007) Table VI, after Henze et al. (2000) | L |
-| `K_comp` | Heterotroph biomass that halves nitrification | 5.0 | g DW m⁻² | no source; the suppression of nitrifiers by heterotrophs has not been measured here | **U** |
-| `X_cap` | Carrying capacity — maximum areal biomass | 60 | g DW m⁻² | midpoint of 32–88 implied by plant film thicknesses 0.151–0.412 mm; swept 32–88 | U |
-| `k_att` | Areal attachment flux onto bare HDPE | 1.0 | g DW m⁻² d⁻¹ | no source; anchored so HDPE gains in one day the biomass earlier versions imposed as an initial condition | **U** |
-| `k_det` | First-order detachment (sloughing) rate | 0.05 | d⁻¹ | no source | U |
-| `K_pl`, `b_pl` | Suspended-pool attachment half-saturation and decay rate | 0.5, 0.10 | g m⁻³, d⁻¹ | no source | U |
-| `seed_frac` | Share of inoculum already attached at t = 0 | 0.02 | – | no source | U |
-| `lag_d` | Baranyi–Roberts lag duration before full growth | 0 | d | form from Baranyi & Roberts (1994); **off**, see §3.8 | U |
-| `a_mat` | Material colonization factor on attachment flux | 14.73 / 1.0 / 0.528 | – | Gross et al. (2016) seven-day areal biomass relative to HDPE, for FAB / PE / STL·GRA | L |
-| `S_O_bulk` | Dissolved oxygen in the bulk liquid | 8.0 | g O₂ m⁻³ | stirred open vessel; swept 6.5–9.1, upper bound the plant model's saturation at 20 °C | U |
-| `D_O2_eff` | Effective oxygen diffusivity inside the film | 1.08×10⁻⁴ | m² d⁻¹ | Copp (2024), water value × 0.5 for biofilm | L |
-| `D_S_eff` | Effective substrate diffusivity inside the film | 4.32×10⁻⁵ | m² d⁻¹ | Copp (2024), same construction, readily biodegradable substrate | L |
-| `K_O_A`, `K_O_H` | Oxygen half-saturation, nitrifiers and heterotrophs | 0.25, 0.05 | g O₂ m⁻³ | Copp (2024) plant model | L |
-| `Y_O2_p` | Oxygen produced per unit phototroph biomass | 1.3 | g O₂ g⁻¹ DW | stoichiometric, biomass CH₁.₈O₀.₅N₀.₂, photosynthetic quotient 1.0 | D |
-| `delta_S_floor` | Minimum heterotroph layer thickness | 50 | µm | this study's choice (§3.5) | U |
-| `rho_film_wet`, `moisture` | Wet film density and moisture fraction | 1.426, 0.85 | g cm⁻³, – | Copp (2024) Table 1 — an **assumption** in the plant model, not a measurement; replacing it is one purpose of this experiment | L |
-| `f_wet` | Submerged (wetted) fraction of carrier area | 1.0 (rig) / 0.76 (screening) | – | rig coupons are fully submerged and `coupon_area` is already wetted area, so no further discount applies; in screening, `a_geo` is total surface and part may sit above the liquor | – |
-| `Xp0 : Xn0 : Xh0` | Inoculum guild composition (photo : nitrifier : hetero) | 0.5 : 0.2 : 0.3 | g DW m⁻² | no source; placeholder pending the metagenomic analysis of public datasets | **U** |
-| graphene | Graphene maturation: final factor, onset, time constant | 0.56, 14 d, 10 d | – | Romeu et al. (2022); the time constant is a placeholder | L/U |
+| material | 0.466 | **0.627** | **0.601** | 0.082 | **0.502** |
+| photoperiod | 0.076 | **0.228** | 0.003 | 0.007 | 0.001 |
+| wheel speed | 0.076 | 0.077 | 0.161 | 0.014 | 0.180 |
+| shear exponent | 0.250 | 0.280 | **0.509** | 0.040 | 0.488 |
+| divot shelter | 0.027 | 0.029 | 0.055 | 0.005 | 0.056 |
+| feed load | 0.313 | 0.008 | 0.005 | **0.891** | 0.063 |
 
-### Which parameters matter
-
-A Morris screening (8 trajectories × 15 parameters) ranks the elementary
-effects on the day-60 volumetric ammonia removal rate `r_v`
-(the response `sensitivity.py` actually ranks on; a second ranking on `a_eff`
-is computed alongside it):
-
-    K_comp 4373 ≫ rN_ref 1454 > D_O2_eff 802 > f_wet 754 > X_cap 716
-    > k_att 683 > S_O_bulk 544 > k_det 362 > b_p 184 > K_I 92 > I0 53
-
-**The two most influential parameters, `K_comp` and `rN_ref`, are both
-unmeasured.** This is the model's largest weakness and the main thing the bench
-experiment should fix. It also drove a design change: in a closed batch the
-feed is exhausted within days and the film becomes ~90 % phototrophs, under
-which neither parameter can be constrained at all. The rig is therefore fed —
-half the volume replaced twice a day from day 3 — which keeps ammonia from
-falling below about 74 % of the nitrifier saturation level and keeps a
-nitrifying population to measure.
-
----
-
-## 6. What the model does not include
-
-- **Denitrification.** Deliberately excluded; the rig is aerobic and nitrate
-  accumulates.
-- **pH and alkalinity.** Not tracked, so alkalinity limitation of nitrification
-  cannot appear.
-- **Oxygen as a liquid state.** Bulk DO is imposed; only its gradient *inside*
-  the film is resolved.
-- **Spatial structure within the film.** Each irradiance bin is a stirred layer
-  with analytic penetration depths, not a 1-D multi-species film model.
-- **Inter-vessel variation.** Every replicate in an arm is given the same light
-  field, so the model cannot reproduce replicate scatter. The rig's lamp
-  gradient runs along the replicate axis, not the material axis, and is not yet
-  represented.
-- **Specular reflection, inter-reflection, wavelength.** The light model is
-  diffuse and gray, so its irradiance estimates are a lower bound.
-- **Nitrite** as a separate species, and **nitrate inhibition** at high
-  concentrations.
-- **Temperature dynamics.** Runs are isothermal at 20 °C; θ terms exist but are
-  never exercised.
-- **Any calibration to a measured growth curve.** Nothing in the model has been
-  fitted to data from these coupons.
-
----
-
-## 7. Running it
-
-```bash
-python model/run_demo.py        # one arm, prints a summary and a figure
-python model/build_explorer.py  # the parameter grid behind the web explorer
-python model/build_page.py      # rebuild index.html from that grid and this file
-```
-
-Minimal use from Python:
-
-```python
-import yaml, pandas as pd, reactor as R
-par  = yaml.safe_load(open("params_v2.yaml"))["parameters"]
-bins = pd.read_csv("irradiance_bins.csv").query("material=='FAB' and geometry=='Flat sheet'")
-r = R.Reactor(par, bins.area_fraction.values, bins.rel_irradiance.values,
-              a_v=2.5, attach=14.73, bulk_mode="batch",
-              feed={"Snh": 30, "Sno": 0, "Sp": 5, "Sb": 50})
-t, y = r.simulate(days=28, light_h=9.2, T=20.0)
-u = r.unpack(y)                          # dict of Snh, Sno, Sp, Sb, Xp, Xn, Xh
-```
-
-`Reactor(...)` takes the parameter dict, the bin weights and relative
-irradiances, the specific area `a_v`, the material attachment factor, a bulk
-mode (`"batch"` for a closed vessel, `"fixed"` to hold the liquid constant) and
-the feed composition. `simulate` returns times and the raw state array;
-`unpack` turns it into named series and `areal_rate` returns the areal removal
-rate.
-
-Requires Python 3.11+, numpy, scipy, pandas, pyyaml and matplotlib; rebuilding the
-page additionally needs `markdown`. Run from the repository root. The carrier
-geometry and irradiance pipelines referred to in §4 are not part of this release;
-their outputs ship as `model/geometry_catalogue.csv` and `model/irradiance_bins.csv`.
-
----
-
-## 8. References
-
-Every author–year key in §3 and §5 resolves here, with a note on what the model
-takes from each source. Several values reach the model second-hand: the entries
-drawn from Wolf et al. (2007) Table VI are that paper's own compilation, in
-places from Henze et al. (2000) and Eppley et al. (1969). Those compilations are
-cited as read, not as if the primary papers had been consulted.
-
-### Peer-reviewed literature
-
-- **Baranyi, József; Roberts, Terry A. (1994).** A dynamic approach to predicting bacterial growth in food. *International Journal of Food Microbiology* **23**(3–4), 277–294. [doi:10.1016/0168-1605(94)90157-0](https://doi.org/10.1016/0168-1605(94)90157-0)  
-  *Used for:* the Baranyi–Roberts lag form α(t) in §3.8. The form is implemented; `lag_d = 0`, so no lag is currently asserted.
-- **Boelee, N.C.; Temmink, H.; Janssen, M.; Buisman, C.J.N.; Wijffels, R.H. (2011).** Nitrogen and phosphorus removal from municipal wastewater effluent using microalgal biofilms. *Water Research* **45**(18), 5925–5933. [doi:10.1016/j.watres.2011.08.044](https://doi.org/10.1016/j.watres.2011.08.044)  
-  *Used for:* phototroph biomass nitrogen and phosphorus content, `fN_p` = 0.048 and `fP_p` = 0.0099 g g⁻¹ DW, measured on a nutrient-replete microalgal biofilm.
-- **Edmundson, Scott J.; Huesemann, Michael H. (2015).** The dark side of algae cultivation: Characterizing night biomass loss in three photosynthetic algae, Chlorella sorokiniana, Nannochloropsis salina and Picochlorum sp.. *Algal Research* **12**, 470–476. [doi:10.1016/j.algal.2015.10.012](https://doi.org/10.1016/j.algal.2015.10.012)  
-  *Used for:* the phototroph dark-decay rate `b_p` = 0.17 d⁻¹, from measured night biomass loss across three strains.
-- **Gross, Martin; Zhao, Xuefei; Mascarenhas, Vernon; Wen, Zhiyou (2016).** Effects of the surface physico-chemical properties and the surface textures on the initial colonization and the attached growth in algal biofilm. *Biotechnology for Biofuels* **9**(1), 38. [doi:10.1186/s13068-016-0451-z](https://doi.org/10.1186/s13068-016-0451-z)  
-  *Used for:* the material colonization factors `a_mat` (§3.7), taken as seven-day areal biomass relative to HDPE; the seven-day endpoint that `mu_max_p` is calibrated against; and the assay irradiance that stands in for `I0` until this rig's lamp is characterized.
-- **Ma, Shiyan; Huang, Yun; Zhang, Beiyu; Zhu, Xianqing; Xia, Ao; Zhu, Xun; Liao, Qiang (2023).** Comprehensive modeling and predicting light transmission in microalgal biofilm. *Journal of Environmental Management* **326**, 116757. [doi:10.1016/j.jenvman.2022.116757](https://doi.org/10.1016/j.jenvman.2022.116757)  
-  *Used for:* the film light-absorption coefficient `k_abs` = 0.21 m² g⁻¹ DW (reported range 0.18–0.29), the Beer–Lambert term in §3.1.
-- **Németh, András; Ainsworth, Jude; Ravishankar, Harish; Lens, Piet N. L.; Heffernan, Barry (2023).** Temperature dependence of nitrification in a membrane-aerated biofilm reactor. *Frontiers in Microbiology* **14**, 1114647. [doi:10.3389/fmicb.2023.1114647](https://doi.org/10.3389/fmicb.2023.1114647)  
-  *Used for:* the reference areal nitrification rate `rN_ref` = 4.2 g N m⁻² d⁻¹ (midpoint of 2.96–5.45 at 10–20 mg N L⁻¹) and the biofilm Arrhenius coefficient `theta_n` = 1.025. Measured in a membrane-aerated biofilm reactor, not an RBC — the transfer is why `rN_ref` is listed as unmeasured.
-- **Romeu, Maria J.; Gomes, Luciana C.; Sousa-Cardoso, Francisca; Morais, João; Vasconcelos, Vítor; Whitehead, Kathryn A.; Pereira, Manuel F. R.; Soares, Olívia S. G. P.; Mergulhão, Filipe J. (2022).** How do Graphene Composite Surfaces Affect the Development and Structure of Marine Cyanobacterial Biofilms?. *Coatings* **12**(11), 1775. [doi:10.3390/coatings12111775](https://doi.org/10.3390/coatings12111775)  
-  *Used for:* the graphene maturation factor in §3.9: 44 % less biofilm by wet weight at seven weeks, with no effect during early attachment. §3.9 sets out at length why this transfer is the model's weakest.
-- **Wolf, Gundula; Picioreanu, Cristian; van Loosdrecht, Mark C.M. (2007).** Kinetic modeling of phototrophic biofilms: The PHOBIA model. *Biotechnology and Bioengineering* **97**(5), 1064–1079. [doi:10.1002/bit.21306](https://doi.org/10.1002/bit.21306)  
-  *Used for:* the PHOBIA parameter set, Table VI: `K_N_p`, `K_N_n`, `K_S_h`, `Y_n`, `Y_h`, `b_n`, `b_h`, and the nitrifier μ_max used to derive `Xn_ref`.
-
-### Books and model standards
-
-- **Antonie, R. L. (2018).** *Fixed Biological Surfaces — Wastewater Treatment:
-  The Rotating Biological Contactor.* CRC Press. ISBN 9781351088947.
-  *Used for:* the synthetic feed composition in `rig.yaml` — typical RBC
-  effluent at BOD₅ 20, TSS 30, NH₃-N 20 mg L⁻¹. Cited second-hand, through the
-  experiment setup document; the book itself has not been consulted here.
-
-- **Henze, M., Gujer, W., Mino, T. & van Loosdrecht, M. C. M. (2000).**
-  *Activated Sludge Models ASM1, ASM2, ASM2d and ASM3.* IWA Scientific and
-  Technical Report No. 9, IWA Publishing, London.
-  *Used for:* the conventional suspended-growth Arrhenius coefficient 1.07
-  carried by `theta_p` and `theta_h`, and the decay rates that reach the model
-  through Wolf et al. (2007).
-
-### Project documents (not peer-reviewed)
-
-- **Copp, J. (2024).** *Modelling the Apple Springs Wastewater Treatment Plant.*
-  Technical Memorandum 136-002, Primodal Inc., 11 July 2024.
-  *Used for:* the plant-model values the coupon model inherits — `mu_max_h` at
-  20 °C, the oxygen half-saturations `K_O_A` and `K_O_H`, the effective
-  diffusivities `D_O2_eff` and `D_S_eff`, and the film density and moisture
-  `rho_film_wet` = 1.426 g cm⁻³ and `moisture` = 0.85. The last two are
-  **assumptions in that model, not measurements** — replacing them with a
-  measured value is one of the things this experiment is for.
+Heterotrophs are set by substrate supply and almost nothing else. Phototrophs are the only
+response photoperiod moves. Nitrifiers are set by material and by how hard the film is stripped.
+Material leads for every response except heterotrophs, so the screening question the study was
+built to answer is well posed for the guilds the permit depends on. Details, including the per-guild
+attribution, are in the Sensitivity tab.

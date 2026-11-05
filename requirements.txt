@@ -1,6 +1,6 @@
 numpy
 scipy
 pandas
-pyyaml
+PyYAML
 matplotlib
-markdown
+SALib
